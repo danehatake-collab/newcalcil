@@ -1,0 +1,1801 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Калькулятор запуска</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        @supports (font: -apple-system-body) {
+            body {
+                font: -apple-system-body;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+            background: #000000;
+            color: #FFFFFF;
+            min-height: 100vh;
+            padding: 0;
+            line-height: 1.5;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* iOS-style Fluid Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(
+                circle at 20% 80%, 
+                rgba(52, 211, 153, 0.08) 0%, 
+                transparent 50%
+            ),
+            radial-gradient(
+                circle at 80% 20%, 
+                rgba(16, 185, 129, 0.06) 0%, 
+                transparent 50%
+            );
+            animation: fluidMove 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes fluidMove {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-5%, 5%) scale(1.1); }
+        }
+
+        /* Ambient Light Effect */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 300px;
+            background: radial-gradient(
+                ellipse at top,
+                rgba(16, 185, 129, 0.15) 0%,
+                transparent 60%
+            );
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 440px;
+            margin: 0 auto;
+            padding: 20px 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* iOS Header */
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+            padding-top: env(safe-area-inset-top, 20px);
+        }
+
+        .header h1 {
+            font-size: 34px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #34D399 0%, #10B981 50%, #059669 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            animation: fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header p {
+            font-size: 17px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 400;
+            letter-spacing: -0.3px;
+        }
+
+        /* Fluid Glass Card */
+        .card {
+            background: rgba(28, 28, 30, 0.7);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 0.5px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 
+                0 4px 16px rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Input Group */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-label {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+            letter-spacing: -0.2px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            background: rgba(118, 118, 128, 0.12);
+            border: 0.5px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 17px;
+            color: #FFFFFF;
+            font-weight: 400;
+            letter-spacing: -0.3px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.4);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.06);
+        }
+
+        input[type="number"]::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Price Buttons */
+        .price-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .price-btn {
+            background: rgba(118, 118, 128, 0.12);
+            border: 0.5px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 12px 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #FFFFFF;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            letter-spacing: -0.2px;
+        }
+
+        .price-btn:active {
+            transform: scale(0.96);
+        }
+
+        .price-btn.selected {
+            background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+            color: #000000;
+            border-color: transparent;
+            box-shadow: 0 2px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        /* iOS Button */
+        .calculate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+            border: none;
+            border-radius: 14px;
+            padding: 16px;
+            font-size: 17px;
+            font-weight: 600;
+            color: #000000;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-top: 20px;
+            box-shadow: 
+                0 4px 16px rgba(16, 185, 129, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            letter-spacing: -0.3px;
+        }
+
+        .calculate-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Results */
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Hero Result Card */
+        .result-main {
+            background: linear-gradient(
+                135deg,
+                rgba(16, 185, 129, 0.15) 0%,
+                rgba(5, 150, 105, 0.08) 100%
+            );
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border: 0.5px solid rgba(16, 185, 129, 0.3);
+            border-radius: 24px;
+            padding: 32px 24px;
+            text-align: center;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 8px 32px rgba(16, 185, 129, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        /* Animated Glow */
+        .result-main::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(
+                circle,
+                rgba(16, 185, 129, 0.1) 0%,
+                transparent 50%
+            );
+            animation: rotate 10s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .result-label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 1;
+        }
+
+        .result-amount {
+            font-size: 52px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 6px;
+            letter-spacing: -2px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .result-subtitle {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 500;
+            letter-spacing: -0.2px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Glass Cards */
+        .glass-card {
+            background: rgba(28, 28, 30, 0.7);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border: 0.5px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 
+                0 4px 16px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #34D399;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: -0.3px;
+        }
+
+        /* Breakdown Items */
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .breakdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .breakdown-label {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 500;
+            letter-spacing: -0.2px;
+        }
+
+        .breakdown-value {
+            font-size: 17px;
+            font-weight: 600;
+            color: #FFFFFF;
+            letter-spacing: -0.3px;
+        }
+
+        /* Method Steps */
+        .method-step {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .method-step:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 0.5px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 700;
+            color: #34D399;
+            flex-shrink: 0;
+        }
+
+        .step-title {
+            flex: 1;
+            font-size: 15px;
+            font-weight: 600;
+            color: #FFFFFF;
+            letter-spacing: -0.2px;
+        }
+
+        .step-result {
+            font-size: 17px;
+            font-weight: 700;
+            color: #34D399;
+            flex-shrink: 0;
+            letter-spacing: -0.3px;
+        }
+
+        .step-formula {
+            margin: 12px 0 12px 40px;
+        }
+
+        .formula-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: rgba(118, 118, 128, 0.12);
+            border-radius: 10px;
+            margin-bottom: 6px;
+        }
+
+        .formula-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .formula-label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+            letter-spacing: -0.2px;
+        }
+
+        .formula-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: #FFFFFF;
+            letter-spacing: -0.2px;
+        }
+
+        .step-explain {
+            margin: 12px 0 12px 40px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 12px 14px;
+            background: rgba(16, 185, 129, 0.08);
+            border-left: 2px solid rgba(16, 185, 129, 0.4);
+            border-radius: 8px;
+        }
+
+        .explain-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .explain-text {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.5;
+            letter-spacing: -0.2px;
+        }
+
+        .step-progress {
+            margin: 12px 0 0 40px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #34D399 0%, #10B981 100%);
+            border-radius: 2px;
+            transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Yearly Potential */
+        .yearly-potential {
+            background: linear-gradient(
+                135deg,
+                rgba(16, 185, 129, 0.15) 0%,
+                rgba(5, 150, 105, 0.08) 100%
+            );
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border: 0.5px solid rgba(16, 185, 129, 0.3);
+            border-radius: 24px;
+            padding: 28px 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 
+                0 8px 32px rgba(16, 185, 129, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .yearly-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .yearly-icon {
+            font-size: 28px;
+        }
+
+        .yearly-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #34D399;
+            letter-spacing: -0.3px;
+        }
+
+        .yearly-amount {
+            font-size: 56px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            letter-spacing: -2px;
+        }
+
+        .yearly-breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .yearly-item {
+            background: rgba(118, 118, 128, 0.12);
+            padding: 14px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .yearly-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+            letter-spacing: -0.1px;
+        }
+
+        .yearly-value {
+            font-size: 15px;
+            color: #FFFFFF;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+        }
+
+        .yearly-compare {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.5;
+            letter-spacing: -0.2px;
+        }
+
+        .yearly-compare span {
+            color: #34D399;
+            font-weight: 600;
+        }
+
+        /* CTA Primary */
+        .cta-primary {
+            background: linear-gradient(
+                135deg,
+                rgba(16, 185, 129, 0.2) 0%,
+                rgba(5, 150, 105, 0.12) 100%
+            );
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: 24px;
+            padding: 28px 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            animation: ctaPulse 3s ease-in-out infinite;
+            box-shadow: 
+                0 8px 32px rgba(16, 185, 129, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        @keyframes ctaPulse {
+            0%, 100% { 
+                box-shadow: 0 8px 32px rgba(16, 185, 129, 0.25),
+                           inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            }
+            50% { 
+                box-shadow: 0 12px 48px rgba(16, 185, 129, 0.35),
+                           inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        .cta-primary-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+            color: #000000;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 20px;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .cta-primary-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 12px;
+            line-height: 1.3;
+            letter-spacing: -0.5px;
+        }
+
+        .cta-primary-subtitle {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.5;
+            margin-bottom: 20px;
+            letter-spacing: -0.2px;
+        }
+
+        .cta-primary-subtitle span {
+            color: #34D399;
+            font-weight: 600;
+        }
+
+        .cta-primary-button {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+            border: none;
+            border-radius: 14px;
+            padding: 16px 20px;
+            font-size: 17px;
+            font-weight: 600;
+            color: #000000;
+            text-decoration: none;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 
+                0 4px 16px rgba(16, 185, 129, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            letter-spacing: -0.3px;
+        }
+
+        .cta-primary-button:active {
+            transform: scale(0.98);
+        }
+
+        .cta-button-arrow {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .cta-primary-note {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #34D399;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+        }
+
+        /* Social Proof */
+        .proof-badge {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.15);
+            border: 0.5px solid rgba(16, 185, 129, 0.3);
+            color: #34D399;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .proof-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 20px;
+            letter-spacing: -0.4px;
+        }
+
+        .proof-stats {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .proof-stat-item {
+            flex: 1;
+            background: rgba(118, 118, 128, 0.12);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            border: 0.5px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .proof-stat-item.highlight {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .proof-stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 4px;
+            letter-spacing: -0.4px;
+        }
+
+        .proof-stat-item.highlight .proof-stat-value {
+            background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .proof-stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+            letter-spacing: -0.1px;
+        }
+
+        .proof-stat-arrow {
+            font-size: 20px;
+            color: #34D399;
+        }
+
+        .proof-quote {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            padding: 16px;
+            background: rgba(118, 118, 128, 0.12);
+            border-left: 2px solid #34D399;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            font-style: italic;
+            letter-spacing: -0.2px;
+        }
+
+        .proof-author {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 600;
+            text-align: right;
+            letter-spacing: -0.2px;
+        }
+
+        /* Objections */
+        .objections-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: -0.4px;
+        }
+
+        .objection-card {
+            display: flex;
+            gap: 14px;
+            background: rgba(118, 118, 128, 0.12);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 0.5px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .objection-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .objection-icon {
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .objection-content {
+            flex: 1;
+        }
+
+        .objection-question {
+            font-size: 15px;
+            color: #FF453A;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.2px;
+        }
+
+        .objection-answer {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .answer-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .answer-text {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.5;
+            letter-spacing: -0.2px;
+        }
+
+        .answer-text span {
+            color: #34D399;
+            font-weight: 600;
+        }
+
+        /* Timeline */
+        .timeline-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #FFFFFF;
+            text-align: center;
+            margin-bottom: 8px;
+            letter-spacing: -0.4px;
+        }
+
+        .timeline-subtitle {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+            margin-bottom: 24px;
+            letter-spacing: -0.2px;
+        }
+
+        .timeline-track {
+            position: relative;
+        }
+
+        .timeline-track::before {
+            content: '';
+            position: absolute;
+            left: 13px;
+            top: 14px;
+            bottom: 14px;
+            width: 2px;
+            background: linear-gradient(180deg, #34D399 0%, rgba(16, 185, 129, 0.2) 100%);
+        }
+
+        .timeline-point {
+            position: relative;
+            padding-left: 48px;
+            margin-bottom: 24px;
+        }
+
+        .timeline-point:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 28px;
+            height: 28px;
+            background: #000000;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        .timeline-point.active .timeline-dot {
+            border-color: #34D399;
+            box-shadow: 0 0 16px rgba(16, 185, 129, 0.5);
+        }
+
+        .timeline-point.highlight .timeline-dot {
+            border-color: #34D399;
+            background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+        }
+
+        .timeline-content {
+            background: rgba(118, 118, 128, 0.12);
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 0.5px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .timeline-point.highlight .timeline-content {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .timeline-week {
+            font-size: 11px;
+            color: #34D399;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .timeline-action {
+            font-size: 15px;
+            color: #FFFFFF;
+            font-weight: 600;
+            margin-bottom: 4px;
+            letter-spacing: -0.2px;
+        }
+
+        .timeline-result {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: -0.1px;
+        }
+
+        .timeline-point.highlight .timeline-result {
+            font-size: 15px;
+            color: #34D399;
+            font-weight: 600;
+        }
+
+        /* Urgency Block */
+        .urgency-block {
+            background: linear-gradient(
+                135deg,
+                rgba(255, 69, 58, 0.15) 0%,
+                rgba(255, 59, 48, 0.08) 100%
+            );
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border: 1px solid rgba(255, 69, 58, 0.3);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 
+                0 8px 32px rgba(255, 69, 58, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .urgency-icon {
+            font-size: 44px;
+            margin-bottom: 12px;
+        }
+
+        .urgency-content {
+            margin-bottom: 16px;
+        }
+
+        .urgency-title {
+            font-size: 15px;
+            color: #FF453A;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.2px;
+        }
+
+        .urgency-amount {
+            font-size: 40px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FF6961 0%, #FF453A 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 4px;
+            letter-spacing: -1px;
+        }
+
+        .urgency-subtitle {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: -0.1px;
+        }
+
+        .urgency-explanation {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.5;
+            padding: 14px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            letter-spacing: -0.2px;
+        }
+
+        .urgency-explanation span {
+            color: #34D399;
+            font-weight: 600;
+        }
+
+        /* CTA Final */
+        .cta-final-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .cta-final-subtitle {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.5;
+            margin-bottom: 20px;
+            letter-spacing: -0.2px;
+        }
+
+        .cta-final-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+            border: none;
+            border-radius: 14px;
+            padding: 16px 28px;
+            font-size: 17px;
+            font-weight: 600;
+            color: #000000;
+            text-decoration: none;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 
+                0 4px 16px rgba(16, 185, 129, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            margin-bottom: 16px;
+            letter-spacing: -0.3px;
+        }
+
+        .cta-final-button:active {
+            transform: scale(0.98);
+        }
+
+        .cta-final-icon {
+            font-size: 22px;
+        }
+
+        .cta-final-footer {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .cta-final-item {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+            letter-spacing: -0.1px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px 12px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .yearly-amount {
+                font-size: 44px;
+            }
+
+            .yearly-breakdown {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-primary-title {
+                font-size: 20px;
+            }
+
+            .proof-stats {
+                flex-direction: column;
+            }
+
+            .proof-stat-arrow {
+                transform: rotate(90deg);
+            }
+
+            .objection-card {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .timeline-point {
+                padding-left: 44px;
+            }
+
+            .urgency-amount {
+                font-size: 32px;
+            }
+
+            .cta-final-title {
+                font-size: 22px;
+            }
+
+            .cta-final-footer {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+
+        /* Price Hint */
+        .price-hint {
+            margin-top: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            display: none;
+            letter-spacing: -0.2px;
+        }
+
+        .price-hint.show {
+            display: block;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .price-hint.warning {
+            background: rgba(255, 159, 10, 0.12);
+            color: #FF9F0A;
+            border: 0.5px solid rgba(255, 159, 10, 0.3);
+        }
+
+        .price-hint.success {
+            background: rgba(16, 185, 129, 0.12);
+            color: #34D399;
+            border: 0.5px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .price-hint.premium {
+            background: rgba(191, 90, 242, 0.12);
+            color: #BF5AF2;
+            border: 0.5px solid rgba(191, 90, 242, 0.3);
+        }
+
+        /* Motivation */
+        .motivation {
+            background: rgba(28, 28, 30, 0.7);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border: 0.5px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 16px;
+            text-align: center;
+            box-shadow: 
+                0 4px 16px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .motivation-text {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            font-weight: 500;
+            letter-spacing: -0.2px;
+        }
+
+        .motivation-emoji {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 32px;
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+
+        .footer-text {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-bottom: 16px;
+            letter-spacing: -0.1px;
+        }
+
+        .cta-btn {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.12);
+            border: 0.5px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 14px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #34D399;
+            text-decoration: none;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            letter-spacing: -0.2px;
+        }
+
+        .cta-btn:active {
+            transform: scale(0.96);
+            background: rgba(16, 185, 129, 0.18);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>КАЛЬКУЛЯТОР ЗАПУСКА 🚀</h1>
+            <p>Узнай свой потенциал за 30 секунд</p>
+        </div>
+
+        <div class="card">
+            <div class="input-group">
+                <label class="input-label">Подписчиков в Instagram</label>
+                <input type="number" id="followers" placeholder="1500" min="0">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Средние охваты Reels</label>
+                <input type="number" id="reels" placeholder="5000" min="0">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Просмотры Stories</label>
+                <input type="number" id="stories" placeholder="500" min="0">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Цена курса (₽)</label>
+                <input type="number" id="price" placeholder="30000" min="0">
+                <div class="price-buttons">
+                    <button class="price-btn" data-price="15000">15К</button>
+                    <button class="price-btn" data-price="30000">30К</button>
+                    <button class="price-btn" data-price="50000">50К</button>
+                    <button class="price-btn" data-price="90000">90К</button>
+                </div>
+                <div class="price-hint" id="priceHint"></div>
+            </div>
+
+            <button class="calculate-btn" onclick="calculate()">Рассчитать доход 🚀</button>
+        </div>
+
+        <div class="results" id="results">
+            <div class="result-main">
+                <div class="result-label">Твой доход за запуск</div>
+                <div class="result-amount" id="income">0 ₽</div>
+                <div class="result-subtitle">за 30-60 дней</div>
+            </div>
+
+            <div class="glass-card">
+                <div class="section-title">📊 Разбивка</div>
+                <div class="breakdown-item">
+                    <span class="breakdown-label">Лиды</span>
+                    <span class="breakdown-value" id="leads">0</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="breakdown-label">Перейдут в Telegram</span>
+                    <span class="breakdown-value" id="telegram">0</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="breakdown-label">Купят курс</span>
+                    <span class="breakdown-value" id="buyers">0</span>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="section-title">🔍 Откуда эта цифра:</div>
+                
+                <div class="method-step">
+                    <div class="step-header">
+                        <span class="step-number">1</span>
+                        <span class="step-title">Потенциальных лидов</span>
+                        <span class="step-result" id="methodLeads">0</span>
+                    </div>
+                    <div class="step-formula">
+                        <div class="formula-item">
+                            <span class="formula-label">15% подписчиков</span>
+                            <span class="formula-value" id="fromFollowers">0</span>
+                        </div>
+                        <div class="formula-item">
+                            <span class="formula-label">+ 3% охватов Reels</span>
+                            <span class="formula-value" id="fromReels">0</span>
+                        </div>
+                        <div class="formula-item">
+                            <span class="formula-label">+ 8% просмотров Stories</span>
+                            <span class="formula-value" id="fromStories">0</span>
+                        </div>
+                    </div>
+                    <div class="step-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressLeads"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="method-step">
+                    <div class="step-header">
+                        <span class="step-number">2</span>
+                        <span class="step-title">Перейдут в Telegram</span>
+                        <span class="step-result" id="methodTelegram">0</span>
+                    </div>
+                    <div class="step-explain">
+                        <span class="explain-icon">💬</span>
+                        <span class="explain-text">35% от лидов переходят в Telegram</span>
+                    </div>
+                    <div class="step-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressTelegram" style="width: 35%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="method-step">
+                    <div class="step-header">
+                        <span class="step-number">3</span>
+                        <span class="step-title">Купят после прогрева</span>
+                        <span class="step-result" id="methodBuyers">0</span>
+                    </div>
+                    <div class="step-explain">
+                        <span class="explain-icon">🔥</span>
+                        <span class="explain-text">6% конверсия после прогрева в TG</span>
+                    </div>
+                    <div class="step-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressBuyers" style="width: 6%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="method-step">
+                    <div class="step-header">
+                        <span class="step-number">4</span>
+                        <span class="step-title">Твоя цена курса</span>
+                        <span class="step-result" id="methodPrice">0 ₽</span>
+                    </div>
+                    <div class="step-explain">
+                        <span class="explain-icon">💰</span>
+                        <span class="explain-text" id="priceExplain">Умножаем покупателей на цену</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="yearly-potential">
+                <div class="yearly-header">
+                    <div class="yearly-icon">📅</div>
+                    <div class="yearly-title">Твой потенциал за год</div>
+                </div>
+                <div class="yearly-amount" id="yearlyIncome">0 ₽</div>
+                <div class="yearly-breakdown">
+                    <div class="yearly-item">
+                        <span class="yearly-label">3-4 запуска в год</span>
+                        <span class="yearly-value" id="launchCount">3-4</span>
+                    </div>
+                    <div class="yearly-item">
+                        <span class="yearly-label">Работа 2-3 месяца</span>
+                        <span class="yearly-value">9 мес отдых</span>
+                    </div>
+                </div>
+                <div class="yearly-compare">
+                    💼 Сравни с офисом: <span id="monthsWork">0</span> месяцев зарплаты за год
+                </div>
+            </div>
+
+            <div class="cta-primary">
+                <div class="cta-primary-badge">🎁 Бесплатно</div>
+                <div class="cta-primary-title">Получить разбор твоей идеи</div>
+                <div class="cta-primary-subtitle">
+                    Я лично посмотрю твою нишу и покажу<br>
+                    как превратить знания в <span id="ctaIncome">0 ₽</span>/месяц
+                </div>
+                <a href="https://t.me/danyaizmailov" target="_blank" rel="noopener noreferrer" class="cta-primary-button">
+                    <span class="cta-button-text">💎 Получить разбор</span>
+                    <span class="cta-button-arrow">→</span>
+                </a>
+                <div class="cta-primary-note">⚡️ Ответ в течение 24 часов</div>
+            </div>
+
+            <div class="glass-card">
+                <div class="proof-badge">✅ Реальный кейс</div>
+                <div class="proof-title">Я сделал это сам</div>
+                <div class="proof-stats">
+                    <div class="proof-stat-item">
+                        <div class="proof-stat-value">1 500</div>
+                        <div class="proof-stat-label">подписчиков</div>
+                    </div>
+                    <div class="proof-stat-arrow">→</div>
+                    <div class="proof-stat-item highlight">
+                        <div class="proof-stat-value">1 000 000 ₽</div>
+                        <div class="proof-stat-label">за запуск</div>
+                    </div>
+                </div>
+                <div class="proof-quote">
+                    "Малая аудитория — не проблема. Проблема — отсутствие системы. 
+                    Я показываю эту систему, потому что сам прошёл путь от автомойщика до первого миллиона рублей за 1,5 месяца"
+                </div>
+                <div class="proof-author">— Даня</div>
+            </div>
+
+            <div class="glass-card">
+                <div class="objections-title">🤔 Твои мысли и мои ответы</div>
+                
+                <div class="objection-card">
+                    <div class="objection-icon">❌</div>
+                    <div class="objection-content">
+                        <div class="objection-question">"У меня мало подписчиков"</div>
+                        <div class="objection-answer">
+                            <span class="answer-icon">✅</span>
+                            <span class="answer-text">1500 достаточно для <span id="obj1Income">300К-500К</span>. Качество > количество.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="objection-card">
+                    <div class="objection-icon">❌</div>
+                    <div class="objection-content">
+                        <div class="objection-question">"Не знаю как создавать курсы"</div>
+                        <div class="objection-answer">
+                            <span class="answer-icon">✅</span>
+                            <span class="answer-text">Система из 5 шагов. MVP курса за 1-2 недели.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="objection-card">
+                    <div class="objection-icon">❌</div>
+                    <div class="objection-content">
+                        <div class="objection-question">"Вдруг никто не купит"</div>
+                        <div class="objection-answer">
+                            <span class="answer-icon">✅</span>
+                            <span class="answer-text">Предзапись: сначала продаёшь → потом создаёшь.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="objection-card">
+                    <div class="objection-icon">❌</div>
+                    <div class="objection-content">
+                        <div class="objection-question">"У меня нет времени"</div>
+                        <div class="objection-answer">
+                            <span class="answer-icon">✅</span>
+                            <span class="answer-text">2-3 часа в день. Через 2 месяца актив на <span id="obj4Income">0 ₽</span>.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="timeline-title">🗓 Твой путь к первым деньгам</div>
+                <div class="timeline-subtitle">Реалистичный сценарий при правильной системе</div>
+
+                <div class="timeline-track">
+                    <div class="timeline-point active">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-week">Сегодня</div>
+                            <div class="timeline-action">Получаешь разбор ниши</div>
+                            <div class="timeline-result">Понимаешь что продавать</div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-point">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-week">Через 2 недели</div>
+                            <div class="timeline-action">Создаёшь MVP курса</div>
+                            <div class="timeline-result">Курс готов на 70%</div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-point">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-week">Через 4 недели</div>
+                            <div class="timeline-action">Прогреваешь аудиторию</div>
+                            <div class="timeline-result">Формируешь спрос</div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-point">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-week">Через 6 недель</div>
+                            <div class="timeline-action">Открываешь продажи</div>
+                            <div class="timeline-result">7-14 дней запуска</div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-point highlight">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-week">Через 2 месяца</div>
+                            <div class="timeline-action">💰 Первые деньги</div>
+                            <div class="timeline-result" id="timelineIncome">0 ₽ на счету</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="urgency-block">
+                <div class="urgency-icon">⏰</div>
+                <div class="urgency-content">
+                    <div class="urgency-title">Каждый день без запуска</div>
+                    <div class="urgency-amount" id="dailyLoss">0 ₽</div>
+                    <div class="urgency-subtitle">упущенной выгоды</div>
+                </div>
+                <div class="urgency-explanation">
+                    Пока ты думаешь — теряешь деньги. Два месяца = 
+                    <span id="twoMonthsLoss">0 ₽</span> на счету.
+                </div>
+            </div>
+
+            <div class="glass-card" style="text-align: center;">
+                <div class="cta-final-title">🚀 Готов начать?</div>
+                <div class="cta-final-subtitle">
+                    Напиши мне в Telegram — получи бесплатный разбор<br>
+                    твоей ниши и пошаговый план запуска
+                </div>
+                <a href="https://t.me/danyaizmailov" target="_blank" rel="noopener noreferrer" class="cta-final-button">
+                    <span class="cta-final-icon">💬</span>
+                    <span class="cta-final-text">Получить разбор</span>
+                </a>
+                <div class="cta-final-footer">
+                    <div class="cta-final-item">✅ Бесплатно</div>
+                    <div class="cta-final-item">✅ Без навязывания</div>
+                    <div class="cta-final-item">✅ Ответ за 24ч</div>
+                </div>
+            </div>
+
+            <div class="motivation" id="motivation">
+                <div class="motivation-emoji" id="motivationEmoji">🔥</div>
+                <div class="motivation-text" id="motivationText"></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p class="footer-text">Хочешь узнать как запустить?</p>
+            <a href="https://t.me/danyaizmailov" target="_blank" rel="noopener noreferrer" class="cta-btn">Перейти в Telegram →</a>
+        </div>
+    </div>
+
+    <script>
+        // Price buttons
+        document.querySelectorAll('.price-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.price-btn').forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                document.getElementById('price').value = this.dataset.price;
+                showPriceHint(parseInt(this.dataset.price));
+            });
+        });
+
+        // Price hint
+        document.getElementById('price').addEventListener('input', function() {
+            const price = parseInt(this.value);
+            if (price > 0) {
+                showPriceHint(price);
+            }
+        });
+
+        function showPriceHint(price) {
+            const hint = document.getElementById('priceHint');
+            hint.classList.add('show');
+            
+            if (price < 25000) {
+                hint.className = 'price-hint show warning';
+                hint.textContent = '⚠️ Низкая цена снижает ценность';
+            } else if (price >= 25000 && price <= 60000) {
+                hint.className = 'price-hint show success';
+                hint.textContent = '✅ Оптимальный диапазон';
+            } else {
+                hint.className = 'price-hint show premium';
+                hint.textContent = '💎 Premium сегмент';
+            }
+        }
+
+        // Calculate
+        function calculate() {
+            const followers = parseInt(document.getElementById('followers').value) || 0;
+            const reels = parseInt(document.getElementById('reels').value) || 0;
+            const stories = parseInt(document.getElementById('stories').value) || 0;
+            const price = parseInt(document.getElementById('price').value) || 0;
+
+            if (followers === 0 || price === 0) {
+                alert('Заполни минимум подписчиков и цену курса');
+                return;
+            }
+
+            const fromFollowers = Math.round(followers * 0.15);
+            const fromReels = Math.round(reels * 0.03);
+            const fromStories = Math.round(stories * 0.08);
+            const leads = fromFollowers + fromReels + fromStories;
+            const telegramUsers = Math.round(leads * 0.35);
+            const buyers = Math.round(telegramUsers * 0.06);
+            const income = buyers * price;
+
+            const resultsElement = document.getElementById('results');
+            if (resultsElement) {
+                resultsElement.classList.add('show');
+            }
+            
+            animateNumber('income', income);
+            animateNumber('leads', leads, false);
+            animateNumber('telegram', telegramUsers, false);
+            animateNumber('buyers', buyers, false);
+
+            animateNumber('methodLeads', leads, false);
+            animateNumber('methodTelegram', telegramUsers, false);
+            animateNumber('methodBuyers', buyers, false);
+            animateNumber('fromFollowers', fromFollowers, false);
+            animateNumber('fromReels', fromReels, false);
+            animateNumber('fromStories', fromStories, false);
+            
+            const methodPriceElement = document.getElementById('methodPrice');
+            if (methodPriceElement) {
+                methodPriceElement.textContent = price.toLocaleString('ru-RU') + ' ₽';
+            }
+
+            const priceExplain = document.getElementById('priceExplain');
+            if (priceExplain) {
+                priceExplain.textContent = `${buyers} × ${price.toLocaleString('ru-RU')}₽ = ${income.toLocaleString('ru-RU')}₽`;
+            }
+
+            const yearlyIncome = income * 3.5;
+            animateNumber('yearlyIncome', yearlyIncome);
+            
+            const avgSalary = 80000;
+            const monthsWork = Math.round(yearlyIncome / avgSalary);
+            const monthsWorkElement = document.getElementById('monthsWork');
+            if (monthsWorkElement) {
+                monthsWorkElement.textContent = monthsWork;
+            }
+
+            const monthlyIncome = Math.round(yearlyIncome / 12);
+            setTimeout(() => {
+                const ctaIncomeElement = document.getElementById('ctaIncome');
+                if (ctaIncomeElement) {
+                    ctaIncomeElement.textContent = monthlyIncome.toLocaleString('ru-RU') + ' ₽';
+                }
+            }, 1000);
+
+            setTimeout(() => {
+                const obj1Element = document.getElementById('obj1Income');
+                if (obj1Element) {
+                    obj1Element.textContent = income.toLocaleString('ru-RU') + '₽';
+                }
+                const obj4Element = document.getElementById('obj4Income');
+                if (obj4Element) {
+                    obj4Element.textContent = income.toLocaleString('ru-RU') + ' ₽';
+                }
+            }, 1200);
+
+            setTimeout(() => {
+                const timelineElement = document.getElementById('timelineIncome');
+                if (timelineElement) {
+                    timelineElement.textContent = income.toLocaleString('ru-RU') + ' ₽ на счету';
+                }
+            }, 1400);
+
+            const dailyLoss = Math.round(yearlyIncome / 365);
+            animateNumber('dailyLoss', dailyLoss);
+            
+            const twoMonthsIncome = Math.round(income);
+            setTimeout(() => {
+                const twoMonthsElement = document.getElementById('twoMonthsLoss');
+                if (twoMonthsElement) {
+                    twoMonthsElement.textContent = twoMonthsIncome.toLocaleString('ru-RU') + ' ₽';
+                }
+            }, 1600);
+
+            setTimeout(() => {
+                const leadsPercent = Math.min((leads / (followers || 1)) * 100, 100);
+                const progressLeadsElement = document.getElementById('progressLeads');
+                if (progressLeadsElement) {
+                    progressLeadsElement.style.width = leadsPercent + '%';
+                }
+            }, 100);
+
+            showMotivation(income, buyers);
+
+            setTimeout(() => {
+                if (resultsElement) {
+                    resultsElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }, 100);
+        }
+
+        function animateNumber(elementId, target, isCurrency = true) {
+            const element = document.getElementById(elementId);
+            const duration = 1000;
+            const steps = 50;
+            const increment = target / steps;
+            let current = 0;
+            let step = 0;
+
+            const timer = setInterval(() => {
+                current += increment;
+                step++;
+                
+                if (step >= steps) {
+                    current = target;
+                    clearInterval(timer);
+                }
+
+                if (isCurrency) {
+                    element.textContent = Math.round(current).toLocaleString('ru-RU') + ' ₽';
+                } else {
+                    element.textContent = Math.round(current).toLocaleString('ru-RU');
+                }
+            }, duration / steps);
+        }
+
+        function showMotivation(income, buyers) {
+            const emoji = document.getElementById('motivationEmoji');
+            const text = document.getElementById('motivationText');
+
+            if (income < 100000) {
+                emoji.textContent = '🎯';
+                text.textContent = 'Отличное начало! Даже с малой аудиторией ты можешь выйти на стабильный доход.';
+            } else if (income >= 100000 && income < 300000) {
+                emoji.textContent = '🔥';
+                text.textContent = 'Серьёзный потенциал! Один запуск = несколько месяцев работы.';
+            } else if (income >= 300000 && income < 500000) {
+                emoji.textContent = '💎';
+                text.textContent = 'Это уже настоящий бизнес! С такими цифрами ты можешь полностью уйти в свои проекты.';
+            } else if (income >= 500000 && income < 1000000) {
+                emoji.textContent = '🚀';
+                text.textContent = 'Невероятный потенциал! 3-4 запуска в год = финансовая свобода.';
+            } else {
+                emoji.textContent = '👑';
+                text.textContent = 'Миллионный потенциал! Твоя аудитория может дать тебе полную независимость.';
+            }
+        }
+
+        // Auto-fill example
+        window.addEventListener('load', () => {
+            if (!document.getElementById('followers').value) {
+                document.getElementById('followers').value = '1500';
+                document.getElementById('reels').value = '5000';
+                document.getElementById('stories').value = '500';
+                document.getElementById('price').value = '30000';
+                showPriceHint(30000);
+            }
+        });
+    </script>
+</body>
+</html>
